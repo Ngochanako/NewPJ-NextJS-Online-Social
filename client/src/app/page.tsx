@@ -4,7 +4,7 @@ export default function Home() {
   return (
     <div>
       kkkkk
-      <p>olll</p>
+      <p>olllkkk</p>
     </div>
   );
 }
