@@ -1,0 +1,93 @@
+export type CommentParent={
+    id:string,
+    idUser:string,
+    avatarUser:string,
+    userNameUser:string,
+    postId:string,
+    detail:string,
+    date:number,
+    commentsById:string[]
+}
+export type CommentChild={
+    id:string,
+    idUser:string,
+    avatarUser:string,
+    userNameUser:string,
+    idParent:string,
+    userNameParent:string,
+    postId:string,
+    detail:string,
+    date:number,
+}
+export type Post={
+    id:string,
+    idUser:string,
+    avatarUser:string,
+    userNameUser:string,
+    detail:string,
+    date:number,
+    fullDate:string,
+    images:string[],
+    commentsById:string[],
+    favouristUsersById:string[], 
+    idGroup:string|null,
+    status:string,
+    lock:boolean  
+}
+export type User={
+    id:string,
+    username:string,
+    password:string,
+    email:string,
+    avatar:string,
+    biography:string,
+    gender:string,
+    followUsersById:string[],
+    status:boolean,
+    private:boolean,
+    requestFollowById:string[]
+}
+export type Modal={
+    comments:boolean,
+    avatar:{
+        type:string,
+        status:boolean,
+    },
+    post:{
+        type:string,
+        status:boolean,
+    },
+    uploadPost:{
+        type:string,
+        status:boolean,
+    },
+    updatePost:boolean,
+    delete:boolean,
+    editPost:boolean,
+    detailUser:boolean,
+}
+export type Group={
+    id:string,
+    groupName:string,
+    usersById:string[],
+    status:boolean,
+    avatar:string,
+    private:boolean,
+    adminById:string,
+}
+export type State={
+    users:User[],
+    user:User,
+    register:User[],
+    modal:Modal,
+    previewImages:string[],
+    imagesPost:any[],
+    post:Post,
+    posts:Post[],
+    commentsChild:CommentChild[],
+    commentsParent:CommentParent[],
+    userAdmin:User,
+    groups:Group[],
+    group:Group,
+    loading:boolean
+}

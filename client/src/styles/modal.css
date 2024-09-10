@@ -1,0 +1,30 @@
+.modal{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgb(21, 21, 21,0.7);
+    z-index: 2000;
+}
+.modal-close{
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+}
+#white-textarea {
+    width: 400px;
+    height: 200px;
+    background-color: #ffffff; /* Màu nền trắng */
+    color: #000000;           /* Màu chữ đen */ 
+    padding: 10px;            /* Khoảng đệm bên trong ô textarea */
+    font-size: 14px;          /* Kích thước chữ */
+    resize: none;             
+    outline: none;  
+    overflow: auto;          
+}

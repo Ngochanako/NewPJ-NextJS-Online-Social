@@ -1,0 +1,35 @@
+.pagination{
+    display: flex;
+    gap:10px;
+    margin: 50px;
+}
+.pagesNumber{
+    background-color: orange;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+    cursor: pointer;
+    background-color: white;
+    transition: background-color 0.3s ease;
+}
+.pagesNumber:hover{
+    background-color: #f0f0f0;
+}
+.active{
+    background-color:orangered;
+    color: white;
+}
+.navButton {
+    border-radius: 5px;
+    border: none;
+    background-color: #c1081e;
+    color: white;
+    padding: 8px 12px;
+    margin-right: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+.navButton:disabled{
+    cursor:not-allowed;
+    background-color:  #ccc;
+}
