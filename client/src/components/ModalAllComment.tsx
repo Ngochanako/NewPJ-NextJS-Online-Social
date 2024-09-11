@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Carousel from 'react-bootstrap/Carousel';
 import { useDispatch, useSelector } from 'react-redux';
-import { activeModalUpdatePost, disableModalAllComment } from '../store/reducers/ModalReducer';
+import { activeModalEditPost, activeModalUpdatePost, disableModalAllComment } from '../store/reducers/ModalReducer';
 import { CommentChild, CommentParent, Post, State } from '../interfaces';
 import axios from 'axios';
 import { setPost } from '../store/reducers/PostReducer';
@@ -234,7 +234,7 @@ export default function ModalAllComment() {
                 <div className='flex justify-between'>
                     <div className='flex items-center'>
                             <img className='w-[50px] h-[50px] rounded-[50%]' src={user.avatar} alt="" />
-                            <div className='font-bold'><Link href={`/user/${user.id}`}>{user.username}</Link></div>
+                            <div className='font-bold'><Link className='no-underline' href={`/user/${user.id}`}>{user.username}</Link></div>
                     </div>
                     <div onClick={openModalUpdatePost} className='flex items-center gap-[5px] cursor-pointer hover:text-gray-400'>
                         <div className='w-[3px] h-[3px] bg-gray-600 rounded-[50%]'></div>
@@ -249,7 +249,7 @@ export default function ModalAllComment() {
                  <div className='flex items-center'>
                             <img className='w-[50px] h-[50px] rounded-[50%]' src={user.avatar} alt="" />
                             <div>
-                                <div className='font-bold'><Link href={`/user/${user.id}`}>{user.username}</Link> <span className='font-normal text-[14px]'>{post?.detail}</span></div>
+                                <div className='font-bold'><Link className='no-underline' href={`/user/${user.id}`}>{user.username}</Link> <span className='font-normal text-[14px]'>{post?.detail}</span></div>
                                 <div className='text-[14px] text-gray-500'>{convertTime((new Date().getTime()-post?.date)/60000)}</div>
                             </div>
                             

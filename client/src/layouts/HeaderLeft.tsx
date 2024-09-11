@@ -18,6 +18,7 @@ import ModalAllComment from '@/components/ModalAllComment';
 import ModalDelete from '@/components/ModalDelete';
 import ModalEditPost from '@/components/ModalEditPost';
 import ModalDetailUser from '@/components/ModalDetailUser';
+import ModalUpdatePost from '@/components/ModalUpdatePost';
 export default function HeaderLeft() {
   //Initiliaze
   const dispatch=useDispatch();
@@ -107,6 +108,7 @@ export default function HeaderLeft() {
       {modal.comments&&<ModalAllComment/>}
       {modal.delete&&<ModalDelete/>}
       {modal.editPost&&<ModalEditPost/>}
+      {modal.updatePost&&<ModalUpdatePost/>}
       <header className={`${style.headerLeft}  p-[30px] fixed`}>
         <div className={`${style.headerListItem} mb-[30px]`}>
           <i className="fa-brands fa-instagram text-[20px]"></i>
