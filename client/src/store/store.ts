@@ -2,7 +2,6 @@ import { configureStore } from "@reduxjs/toolkit";
 import UsersReducer from "./reducers/UsersReducer";
 import UserReducer from "./reducers/UserReducer";
 import ModalReducer from "./reducers/ModalReducer";
-import PreviewImagesReducer from "./reducers/PreviewImagesReducer";
 import ImagesPostReducer from "./reducers/ImagesPostReducer";
 import PostsReducer from "./reducers/PostsReducer";
 import postReducer from "./reducers/PostReducer";
@@ -16,7 +15,6 @@ export const store=configureStore({
         users:UsersReducer,
         user:UserReducer,
         modal:ModalReducer,
-        previewImages:PreviewImagesReducer,
         imagesPost:ImagesPostReducer,
         posts:PostsReducer,
         post:PostReducer,

@@ -9,6 +9,8 @@
     gap: 20px;
     align-items: center;
     cursor: pointer;
+    text-decoration: none;
+    color: inherit;
 }
 .headerListItem:hover{
     background-color: rgb(240, 232, 232);

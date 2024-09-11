@@ -12,7 +12,6 @@ import { getUsers, updateUser } from '@/services/users.service';
 import styles from '@/styles/pagination.module.css'
 import axios from 'axios';
 import classNames from 'classnames';
-import { activeModalDetailUser } from '@/store/reducers/ModalReducer';
 export default function page() {
   const router=useRouter();
   const dispatch=useDispatch();
@@ -74,11 +73,10 @@ useEffect(()=>{
     axios
     .get(`http://localhost:3000/users?_page=${currentPage}&_limit=2&username_like=${search}`)
     .then((response) => {
-      console.log('Data received:', response.data); // Log dữ liệu để kiểm tra
       setUsers(response.data);
     })
     .catch((err) => console.log(err));
-},[currentPage,search])
+},[currentPage,search,usersAPI])
 //handle page change
 const handlePageChange =(page:number)=>{
     setCurrentPage(page);
@@ -101,7 +99,7 @@ const handleNext=()=>{
 }
 //render pages
 const renderPagesNumber=()=>{
-    const pages=[];
+    let pages=[];
     let a:number=2;
     let b:number=0;
     if(totalPage<4){
@@ -133,6 +131,7 @@ const renderPagesNumber=()=>{
 
   return (
     <div className=''>
+      <title>Admin</title>
       {/* Bắt đầu nav */}
         <NavAdmin/>
         {/* Kết thúc nav */}
@@ -201,7 +200,6 @@ const renderPagesNumber=()=>{
                            <td><Button variant={btn.status?"outline-success":"outline-danger"}>{btn.status?'Active':"Disable"}</Button></td>
                            <td className='cursor-pointer'>
                                {!btn.status?<i onClick={()=>handleLockUser(btn)} className='bx bxs-lock-alt'></i>:<i onClick={()=>handleLockUser(btn)} className='bx bxs-lock-open-alt'></i>}                          
-                               {/* <i onClick={()=>viewDetailUser(btn)} className="fa-solid fa-eye ml-[20px]"></i> */}
                            </td>
                          </tr>
                         ))}
@@ -224,6 +222,7 @@ const renderPagesNumber=()=>{
                             onClick={handlePageLast}
                             className={classNames(styles.pagesNumber, {
                                 [styles.active]: currentPage === totalPage,
+                                [styles.hidden]: totalPage==1
                             })}>
                             {totalPage}
                     </button>

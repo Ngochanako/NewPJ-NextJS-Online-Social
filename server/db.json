@@ -9,7 +9,7 @@
       "biography": "",
       "gender": "",
       "followUsersById": [],
-      "status": true,
+      "status": false,
       "private": false,
       "requestFollowById": []
     },
@@ -79,7 +79,44 @@
       "requestFollowById": []
     }
   ],
-  "posts": [],
+  "posts": [
+    {
+      "id": "db70a83f-ca6e-40d1-8be1-3befda145b3d",
+      "idUser": "93a9d7df-bbba-4ef2-a58b-f835c5f006ce",
+      "detail": "",
+      "date": 1725951518256,
+      "fullDate": "2024-09-10",
+      "images": [
+        "https://firebasestorage.googleapis.com/v0/b/online-social-2adfa.appspot.com/o/imagesPost%2F6ced467a63fc0fef4e18fe92459acd2d.jpg?alt=media&token=072ed825-7051-4bcc-915f-57aa4f4a275a"
+      ],
+      "favouristUsersById": [],
+      "idGroup": null,
+      "status": "Công khai",
+      "avatarUser": "https://cellphones.com.vn/sforum/wp-content/uploads/2023/10/avatar-trang-4.jpg",
+      "userNameUser": "mai",
+      "commentsById": [],
+      "lock": false
+    },
+    {
+      "id": "199f3ce0-6d57-456d-8562-b5c68013084c",
+      "idUser": "93a9d7df-bbba-4ef2-a58b-f835c5f006ce",
+      "detail": "",
+      "date": 1725951728361,
+      "fullDate": "2024-09-10",
+      "images": [
+        "https://firebasestorage.googleapis.com/v0/b/online-social-2adfa.appspot.com/o/imagesPost%2F2bca6223c9c433c4ca4e722fe851bb4b.jpg?alt=media&token=113778ff-cb43-4b21-960d-34979f01c692"
+      ],
+      "favouristUsersById": [
+        "93a9d7df-bbba-4ef2-a58b-f835c5f006ce"
+      ],
+      "idGroup": null,
+      "status": "Riêng tư",
+      "avatarUser": "https://cellphones.com.vn/sforum/wp-content/uploads/2023/10/avatar-trang-4.jpg",
+      "userNameUser": "mai",
+      "commentsById": [],
+      "lock": false
+    }
+  ],
   "groups": [],
   "commentsParent": [],
   "commentsChild": []

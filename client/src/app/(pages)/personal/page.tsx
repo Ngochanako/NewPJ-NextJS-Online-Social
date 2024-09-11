@@ -6,7 +6,7 @@ import { useDispatch } from 'react-redux';
 import '@/styles/loading.css'
 import { Post, State } from '@/interfaces';
 import Link from 'next/link';
-import { activeModalAvatar, activeModalPost } from '@/store/reducers/ModalReducer';
+import { activeModalAllComment, activeModalAvatar, activeModalPost } from '@/store/reducers/ModalReducer';
 import { getUsers } from '@/services/users.service';
 import { getPosts } from '@/services/posts.service';
 import { setPost } from '@/store/reducers/PostReducer';
@@ -24,8 +24,8 @@ export default function page() {
     const [viewUserFollow,setViewUserFollow]=useState<boolean>(false);
     //get data
     useEffect(()=>{
-      dispatch(getUsers);
-      dispatch(getPosts);
+      dispatch(getUsers());
+      dispatch(getPosts());
     },[])
     //get posts of UserOnline
     useEffect(()=>{
@@ -47,6 +47,7 @@ export default function page() {
     //open modal post
     const openModalPost=(post:Post)=>{
       dispatch(setPost(post));
+      dispatch(activeModalAllComment());
     }
   return (
     <>

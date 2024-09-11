@@ -12,6 +12,8 @@ import { getPosts, updatePost } from '@/services/posts.service';
 import axios from 'axios';
 import classNames from 'classnames';
 import styles from '@/styles/pagination.module.css'
+import Image from 'next/image';
+
 export default function page() {
   //Initialize
   const dispatch = useDispatch();
@@ -38,12 +40,12 @@ export default function page() {
    //pagination
 useEffect(()=>{
     axios
-    .get(`http://localhost:3000/users?_page=${currentPage}&_limit=2`)
+    .get(`http://localhost:3000/posts?_page=${currentPage}&_limit=2`)
     .then((response) => {
       setPosts(response.data);
     })
     .catch((err) => console.log(err));
-},[currentPage])
+},[currentPage,postsAPI])
 //handle page change
 const handlePageChange =(page:number)=>{
     setCurrentPage(page);
@@ -66,7 +68,7 @@ const handleNext=()=>{
 }
 //render pages
 const renderPagesNumber=()=>{
-    const pages=[];
+    let pages=[];
     let a:number=2;
     let b:number=0;
     if(totalPage<4){
@@ -98,6 +100,7 @@ const renderPagesNumber=()=>{
 
   return (
     <div className=''>
+      <title>Manage Posts</title>
       {/* Bắt đầu nav */}
         <NavAdmin/>
         {/* Kết thúc nav */}
@@ -131,13 +134,22 @@ const renderPagesNumber=()=>{
                            <tr key={index}>
                            <td>{index+1}</td>
                            <td>{btn.detail}</td>
-                           <td><img className='w-[100px] h-[100px] rounded-[5px]' src={btn.images[0]} alt="" /></td>
+                           <td>
+
+                            <Image 
+                              src={btn.images && btn.images.length > 0 ? btn.images[0] : '/default-image.jpg'} 
+                              alt="Post Image" 
+                              width={50} 
+                              height={50}
+                            />
+
+                           </td>
                            <td>{btn.fullDate}</td>
                            <td>{btn.userNameUser}</td>
                            
-                           <td><Button variant={btn.status?"outline-success":"outline-danger"}>{btn.status?'Active':"Disable"}</Button></td>
+                           <td><Button variant={btn.status?"outline-success":"outline-danger"}>{btn.lock?'Active':"Disable"}</Button></td>
                            <td className='cursor-pointer'>
-                               {!btn.status?<i onClick={()=>handleLockPost(btn)} className='bx bxs-lock-alt'></i>:<i onClick={()=>handleLockPost(btn)} className='bx bxs-lock-open-alt'></i>}                          
+                               {!btn.lock?<i onClick={()=>handleLockPost(btn)} className='bx bxs-lock-alt'></i>:<i onClick={()=>handleLockPost(btn)} className='bx bxs-lock-open-alt'></i>}                          
                            </td>
                          </tr>
                         ))}
@@ -160,6 +172,7 @@ const renderPagesNumber=()=>{
                             onClick={handlePageLast}
                             className={classNames(styles.pagesNumber, {
                                 [styles.active]: currentPage === totalPage,
+                                [styles.hidden]: totalPage==1
                             })}>
                             {totalPage}
                     </button>

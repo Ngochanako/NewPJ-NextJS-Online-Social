@@ -1,8 +1,10 @@
+'use client'
 import { Post, State} from '@/interfaces';
 import type { User } from '@/interfaces';
+import HeaderLeft from '@/layouts/HeaderLeft';
 import { getPosts } from '@/services/posts.service';
-import { getUsers } from '@/services/users.service';
-import { useRouter } from 'next/router';
+import { getUsers, updateUser } from '@/services/users.service';
+import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 type ParamsProp={
@@ -62,24 +64,47 @@ export default function page({params}:ParamsProp) {
     },[users])
   //return Status fOLLOW
   const returnStatusFollow=()=>{
-     if(userOnline.followUsersById.includes(user.id)){
+     if(userOnline?.followUsersById.includes(user.id)){
         return 'Đang theo dõi'
      }
-     if(user.requestFollowById.includes(userOnline.id)){
+     if(user.requestFollowById.includes(userOnline?.id)){
         return 'Đã gửi yêu cầu theo dõi'
      }
      return 'Chưa theo dõi'
   }
   //open Modal Post
-  const openModalPost=(idPost:string)=>{
-    
+  const openModalPost=(post:Post)=>{
+     router.push(`/home?id=${post.id}`)
   }
   //handleFollow
   const handleFollow=()=>{
-    
-   
+    //if userOnline follow user
+    if(userOnline?.followUsersById.includes(user.id)){
+        const newUser={
+            ...userOnline,
+            followUsersById:userOnline.followUsersById.filter(btn=>btn!=user.id)
+        }
+        localStorage.setItem('user',JSON.stringify(newUser));
+        dispatch(updateUser(newUser));
+        //if userOnline request follow user
+    }else if(user.requestFollowById.includes(userOnline.id)){
+        const newUser={
+            ...user,
+            requestFollowById:user.requestFollowById.filter(btn=>btn!==userOnline.id)
+        }
+        dispatch(updateUser(newUser));
+        //if userOnline not follow user
+    }else{
+        const newUser={
+            ...user,
+            requestFollowById:[...user.requestFollowById,userOnline.id]
+        }
+        dispatch(updateUser(newUser));
+    }
   }
   return (
+    <>
+    <HeaderLeft/>
     <div className='p-[50px] ml-[230px]'>
       
         <header className='px-[40px] flex gap-[80px] items-center'>
@@ -125,11 +150,12 @@ export default function page({params}:ParamsProp) {
        }
         <div className='grid grid-cols-3 gap-[5px]'>
         {postsByUser.sort((a,b)=>b.date-a.date).map((post:Post)=>(
-           <img key={post.id} onClick={()=>openModalPost(post.id)} className='h-[300px] w-[300px] hover:opacity-85 cursor-pointer' src={post.images[0]} alt="" />
+           <img key={post.id} onClick={()=>openModalPost(post)} className='h-[300px] w-[300px] hover:opacity-85 cursor-pointer' src={post.images[0]} alt="" />
        ))}        
         </div>
        
       {/* Post end */}
     </div>
+    </>
   )
 }

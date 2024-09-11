@@ -33,3 +33,6 @@
     cursor:not-allowed;
     background-color:  #ccc;
 }
+.hidden{
+    display: none;
+}

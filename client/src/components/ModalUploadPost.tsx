@@ -32,6 +32,7 @@ export default function ModalUploadPost() {
     const handleChange=(e:React.ChangeEvent<HTMLTextAreaElement>)=>{
         setContentPost(e.target.value);
     }
+    console.log(imagesPost)
     //upload new Post
     const uploadNewPost=()=>{
       //case not select perrmission view post
@@ -39,59 +40,44 @@ export default function ModalUploadPost() {
         setNotify(true);
         return;
       }
-      const newImgs:string[]=[];
-      for(let value of imagesPost){
-        const imageRef=ref(storage,`imagesPost/${value.name}`)
-        console.log(imageRef)
-        uploadBytes(imageRef, value).then((snapshot) => getDownloadURL(snapshot.ref))
-       .then((url) =>
-            {              
-             newImgs.push(url); 
-             if(newImgs.length===imagesPost.length){
-              if(modalUploadPost.type==='personal'){
-              let newPost:Post={
-                id:uuidv4(),
-                idUser:userOnline.id,
-                detail:contentPost,
-                date:new Date().getTime(),
-                fullDate:new Date().toISOString().split('T')[0],
-                images:newImgs,
-                favouristUsersById:[],
-                idGroup:null,
-                status:permissionToViewPostValue,
-                avatarUser:userOnline.avatar,
-                userNameUser:userOnline.username,
-                commentsById:[],
-                lock:false
-               }             
-               dispatch(addNewPost(newPost));
-               dispatch(disableModalUploadPost({type:'',status:false}));
-             } else if(modalUploadPost.type==='group'){
-              
-              let newPost:Post={
-                id:uuidv4(),
-                idUser:userOnline.id,
-                detail:contentPost,
-                date:new Date().getTime(),
-                fullDate:new Date().toISOString().split('T')[0],
-                images:newImgs,
-                favouristUsersById:[],
-                idGroup:group.id,
-                status:permissionToViewPostValue,
-                avatarUser:userOnline.avatar,
-                userNameUser:userOnline.username,
-                commentsById:[],
-                lock:false
-               }  
-               dispatch(addNewPost(newPost));
-               dispatch(disableModalUploadPost({type:'',status:false}));     
-             }  
-            }                         
-            }
-         
-       )
-       .catch(error => console.log(error))
-      }       
+      if(modalUploadPost.type==='personal'){
+        let newPost:Post={
+          id:uuidv4(),
+          idUser:userOnline.id,
+          detail:contentPost,
+          date:new Date().getTime(),
+          fullDate:new Date().toISOString().split('T')[0],
+          images:imagesPost,
+          favouristUsersById:[],
+          idGroup:null,
+          status:permissionToViewPostValue,
+          avatarUser:userOnline.avatar,
+          userNameUser:userOnline.username,
+          commentsById:[],
+          lock:false
+         }             
+         dispatch(addNewPost(newPost));
+         dispatch(disableModalUploadPost({type:'',status:false}));
+       } else if(modalUploadPost.type==='group'){
+        
+        let newPost:Post={
+          id:uuidv4(),
+          idUser:userOnline.id,
+          detail:contentPost,
+          date:new Date().getTime(),
+          fullDate:new Date().toISOString().split('T')[0],
+          images:imagesPost,
+          favouristUsersById:[],
+          idGroup:group.id,
+          status:permissionToViewPostValue,
+          avatarUser:userOnline.avatar,
+          userNameUser:userOnline.username,
+          commentsById:[],
+          lock:false
+         }  
+         dispatch(addNewPost(newPost));
+         dispatch(disableModalUploadPost({type:'',status:false}));     
+       }      
     }
     //open select permissions to view Post
     const openSelectPermissionToViewPost=()=>{
@@ -121,12 +107,12 @@ export default function ModalUploadPost() {
         <hr/>
         <div className='flex'>
             {/* Album ảnh vừa chọn */}
-            {previewImages.length>1?(
+            {imagesPost.length>1?(
                <Carousel data-bs-theme="dark" className='mt-[20px] w-[380px]'>
-               {previewImages.map((img,index)=>(
+               {imagesPost.map((img,index)=>(
                    <Carousel.Item className='' key={index}>
                    <img
-                   className="d-block w-[380px] max-h-[400px] object-cover "
+                   className="d-block w-[380px] h-[400px] object-cover "
                    src={img}
                    alt=""
                    />
@@ -136,7 +122,7 @@ export default function ModalUploadPost() {
             ):(
                 <img
                 className="d-block w-[380px] max-h-[400px] object-cover "
-                src={previewImages[0]}
+                src={imagesPost[0]}
                 alt=""
                 />  
             )}

@@ -11,12 +11,31 @@ import Link from 'next/link';
 import { addNewCommentParent, getCommentsParent, updateCommentsParent } from '@/services/commentsParent.service';
 import { addNewCommentChild, getCommentsChild } from '@/services/commentsChild.service';
 import { getPosts, updatePost } from '@/services/posts.service';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import '@/styles/modal.css'
 export default function ModalAllComment() {
+    const router=useRouter();
+    const pathName=usePathname();
     const commentsChild=useSelector((state:State)=>state.commentsChild);
     const commentsParent=useSelector((state:State)=>state.commentsParent);
     const userOnline=useSelector((state:State)=>state.user)
     const dispatch=useDispatch();
-    const post:Post=useSelector((state:State)=>state.post);
+    const [post,setPostPage]=useState<Post>({
+        id:'',
+        idUser:'',
+        avatarUser:'',
+        userNameUser:'',
+        detail:'',
+        date:0,
+        fullDate:'',
+        images:[],
+        commentsById:[],
+        favouristUsersById:[], 
+        idGroup:null,
+        status:'',
+        lock:false,
+        });
+    // const post:Post=useSelector((state:State)=>state.post);
     const [valueUserName,setValueUserName]=useState<string>('')
     const [user,setUser]=useState<any>({
         id:'',
@@ -36,6 +55,19 @@ export default function ModalAllComment() {
     const [valueComment, setValueComment]=useState<string>('');
     const [typeCommentPost,setTypeCommentPost]=useState<{type:string,id:string,userName:string}>({type:'',id:'',userName:''});
     const [commentsParentUser,setCommentsParentUser]=useState<CommentParent[]>([]);
+    const postLocal=useSelector((state:State)=>state.post);
+    const searchParam=useSearchParams();
+    useEffect(()=>{
+        let idPost=searchParam.get('id');
+        if(idPost){
+            axios.get(`http://localhost:3000/posts/${idPost}`)
+            .then(response=>setPostPage(response.data))
+            .catch(err=>console.log(err))
+        }else{
+           
+            setPostPage(postLocal);
+        }
+    },[searchParam])
     //get CommentParent from API
     useEffect(()=>{
        dispatch(getCommentsParent());
@@ -46,15 +78,17 @@ export default function ModalAllComment() {
      },[])
     //get CommentParent of Post
     useEffect(()=>{
-        let newCommentsParent:CommentParent[]=[];
-        for(let btn of post.commentsById){
-            let newCommentParent=commentsParent.find(item=>item.id===btn);
-            if(newCommentParent){
-                newCommentsParent.push(newCommentParent);
+        if(post){
+            let newCommentsParent:CommentParent[]=[];
+            for(let btn of post.commentsById){
+                let newCommentParent=commentsParent.find(item=>item.id===btn);
+                if(newCommentParent){
+                    newCommentsParent.push(newCommentParent);
+                }
             }
-        }
-        setCommentsParentUser(newCommentsParent);
-    },[commentsParent])
+            setCommentsParentUser(newCommentsParent); 
+        }            
+    },[commentsParent,post])
     //get CommentsChild of Post
     const commentsChildUser=(comments:string[])=>{
         let newCommentsChild:CommentChild[]=commentsChild.filter((btn)=>comments.includes(btn.id));
@@ -62,14 +96,16 @@ export default function ModalAllComment() {
     }
     // get user of Post
     useEffect(()=>{
-        axios.get(`http://localhost:3000/users/${post.idUser}`)
-        .then(response=>setUser(response.data))
-        .catch(err=>console.log(err))
-        
+        if(post){
+            axios.get(`http://localhost:3000/users/${post.idUser}`)
+            .then(response=>setUser(response.data))
+            .catch(err=>console.log(err))
+        }   
     },[post])
     //close Modal
     const closeModal=()=>{
         dispatch(disableModalAllComment())
+        router.push(pathName)
     }
     //follow User
     const followUser=()=>{
@@ -178,12 +214,12 @@ export default function ModalAllComment() {
       };
   return (
     <div className='modal'>
-        <div onClick={closeModal} className='modal-close'></div>
+        <div onClick={closeModal} className='modal-close z-[1]'></div>
         <div className='formModalAllComment flex'>
         <i onClick={closeModal} className="fa-solid fa-xmark z-3 text-[30px] cursor-pointer text-white top-[20px] right-[20px] absolute"></i>
             {/* Slider Img or video */}
             <Carousel data-bs-theme="dark" className='mt-[20px] w-[380px]'>
-                {post.images.map((btn,index)=>(
+                {post?.images.map((btn,index)=>(
                    <Carousel.Item className='' key={index}>
                    <img
                    className="d-block w-[380px] max-h-[400px] object-cover "
@@ -213,8 +249,8 @@ export default function ModalAllComment() {
                  <div className='flex items-center'>
                             <img className='w-[50px] h-[50px] rounded-[50%]' src={user.avatar} alt="" />
                             <div>
-                                <div className='font-bold'><Link href={`/user/${user.id}`}>{user.username}</Link> <span className='font-normal text-[14px]'>{post.detail}</span></div>
-                                <div className='text-[14px] text-gray-500'>{convertTime((new Date().getTime()-post.date)/60000)}</div>
+                                <div className='font-bold'><Link href={`/user/${user.id}`}>{user.username}</Link> <span className='font-normal text-[14px]'>{post?.detail}</span></div>
+                                <div className='text-[14px] text-gray-500'>{convertTime((new Date().getTime()-post?.date)/60000)}</div>
                             </div>
                             
                     </div>
@@ -271,7 +307,7 @@ export default function ModalAllComment() {
                 {/* Favourist */}
                 <div className='flex justify-between'>
                    <div className='flex gap-[10px] text-[20px]'>            
-                      <i onClick={favouristPost} className={`bx bx-heart bx-border hover:border-gray-400 cursor-pointer ${post.favouristUsersById.find(btn=>btn===userOnline.id)?'text-red-700':''}`}></i>
+                      <i onClick={favouristPost} className={`bx bx-heart bx-border hover:border-gray-400 cursor-pointer ${post?.favouristUsersById.find(btn=>btn===userOnline.id)?'text-red-700':''}`}></i>
                       <i className='bx bxs-comment bx-border-circle hover:border-gray-400 cursor-pointer'></i>
                       <i className='bx bxs-share bx-border hover:border-gray-400 cursor-pointer'></i>
                    </div>
@@ -279,8 +315,8 @@ export default function ModalAllComment() {
                    <i className='bx bxs-bookmark-minus text-[22px]'></i>
                    </div>
                 </div>
-                <div className='font-bold text-[14px]'> {post.favouristUsersById.length} lượt thích</div>
-                <div className='text-gray-500 text-[14px]'>{post.fullDate}</div>
+                <div className='font-bold text-[14px]'> {post?.favouristUsersById.length} lượt thích</div>
+                <div className='text-gray-500 text-[14px]'>{post?.fullDate}</div>
                 
                 {/* Comment */}
                 <form className=''>

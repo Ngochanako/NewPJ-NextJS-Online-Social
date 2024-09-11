@@ -10,7 +10,8 @@ import { getPosts, updatePost } from '@/services/posts.service';
 import { activeModalAllComment } from '@/store/reducers/ModalReducer';
 import { setPost } from '@/store/reducers/PostReducer';
 import { getUsers, updateUser } from '@/services/users.service';
-import Head from 'next/head';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 export default function page() {
     //Initialize
     const dispatch=useDispatch();
@@ -20,6 +21,7 @@ export default function page() {
     const commentsChild=useSelector((state:State)=>state.commentsChild);
     const [usersUnFolow,setUsersUnfolow]=useState<User[]>([]);
     const [posts,setPosts]=useState<Post[]>([]);
+    const router=useRouter();
     //get data from API
     useEffect(()=>{
       dispatch(getUsers());
@@ -45,13 +47,14 @@ export default function page() {
           if(post.lock) continue;
           if(post.idUser===userOnline.id){
             newPosts.push(post);
-          }
-          if(post.status=='Công khai'){
-            newPosts.push(post);
-          }
-          if(post.status=='Riêng tư'&&userOnline.followUsersById.includes(post.idUser)){
-            newPosts.push(post);
-          }
+          }else{
+            if(post.status=='Công khai'){
+              newPosts.push(post);
+            }
+            if(post.status=='Riêng tư'&&userOnline.followUsersById.includes(post.idUser)){
+              newPosts.push(post);
+            }
+          }        
         }
         setPosts(newPosts);
      },[postsLocal])
@@ -100,6 +103,7 @@ export default function page() {
      const viewComments=(post:Post)=>{
         dispatch(activeModalAllComment());
         dispatch(setPost(post));
+        router.push(`/home?id=${post.id}`);
      }
      //calculate total commments
      const totalComments=(commentsById:string[])=>{
@@ -127,7 +131,7 @@ export default function page() {
                 <div className='flex justify-between mt-[20px] items-center '>
                   <div className='flex items-center gap-[7px]'>
                     <img className='w-[50px] h-[50px] rounded-[50%]' src={btn.avatarUser} alt="" />
-                    <Link href={`/user/${btn.idUser}`}><div className='font-bold'>{btn.userNameUser}</div></Link>
+                    <Link className='no-underline' href={`/user/${btn.idUser}`}><div className='font-bold'>{btn.userNameUser}</div></Link>
                     
                     <div className='w-[4px] h-[4px] rounded-[50%] bg-gray-500'></div>
                     <div className='text-gray-500 text-[14px]'>{convertTime((new Date().getTime()-btn.date)/60000)}</div>
@@ -148,10 +152,11 @@ export default function page() {
                     <Carousel data-bs-theme="dark" className=' mt-[20px] '>
                       {btn.images.map((item,index)=>(
                         <Carousel.Item key={index} className=''>
-                          <img
-                            className="d-block w-[500px] max-h-[400px] object-cover"
-                            src={item}
-                            alt=""
+                          <Image
+                             alt='Image'
+                             src={item}
+                             width={500}
+                             height={400}
                           />
                           
                         </Carousel.Item>
@@ -202,23 +207,23 @@ export default function page() {
                         <p className=''>{userOnline?.username}</p>
                   </div>
                          
-               <a className='text-orange-600 text-[14px]'>Chuyển</a>
+               <a className='text-orange-600 text-[14px] no-underline'>Chuyển</a>
           </div>
           <div className='flex justify-between'>
                <p className='text-gray-500 font-bold'>Gợi ý cho bạn</p>
-               <a className='text-orange-600 text-[14px]'>Xem tất cả</a>
+               <a className='text-orange-600 text-[14px] no-underline'>Xem tất cả</a>
           </div>
           <div className='flex flex-col gap-[10px]'>
               {usersUnFolow.map(btn=>(
                  <div key={btn.id} className='flex justify-between items-center'>
                  <div className='flex items-center'>
-                    <Link href={`/user/${btn.id}`}><img className='w-[50px] h-[50px] rounded-[50%]' src={btn.avatar} alt="" /></Link> 
+                    <Link className='no-underline' href={`/user/${btn.id}`}><img className='w-[50px] h-[50px] rounded-[50%]' src={btn.avatar} alt="" /></Link> 
                      <div>
-                        <Link href={`/user/${btn.id}`}><p className=''>{btn.username}</p> </Link> 
+                        <Link className='no-underline' href={`/user/${btn.id}`}><p className=''>{btn.username}</p> </Link> 
                         <p className='text-gray-400 text-[14px] font-normal'> Gợi ý cho bạn</p>
                      </div>
                  </div>
-                 <a onClick={()=>followUser(btn)} className='text-orange-600 text-[14px] cursor-pointer'>{btn.requestFollowById?.includes(userOnline?.id)?"Đã gửi yêu cầu theo dõi":'Theo dõi'}</a>
+                 <div onClick={()=>followUser(btn)} className='text-orange-600 text-[14px] cursor-pointer'>{btn.requestFollowById?.includes(userOnline?.id)?"Đã gửi yêu cầu theo dõi":'Theo dõi'}</div>
             </div>
               ))}
           </div>

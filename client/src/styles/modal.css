@@ -28,3 +28,10 @@
     outline: none;  
     overflow: auto;          
 }
+.formModalAllComment{
+    width: 800px;
+    height: 500px;
+    background-color: white;
+    border-radius: 5px;
+    z-index: 2;
+}

@@ -2,10 +2,9 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import ReduxProvider from "./ReduxProvider";
-import Head from "next/head";
 import "tailwindcss/tailwind.css";
 import "boxicons/css/boxicons.min.css";
-
+import 'bootstrap/dist/css/bootstrap.min.css';
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",

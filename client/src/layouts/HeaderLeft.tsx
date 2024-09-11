@@ -91,7 +91,7 @@ export default function HeaderLeft() {
   }
   //open modal Post
    const openModalPost=()=>{
-     dispatch(activeModalPost({type:'personal',status:true}))
+     dispatch(activeModalPost({type:'personal',status:true}));
    }
    //logout
    const logout=()=>{
