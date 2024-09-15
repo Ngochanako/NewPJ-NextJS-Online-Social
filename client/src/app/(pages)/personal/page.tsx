@@ -11,6 +11,7 @@ import { getUsers } from '@/services/users.service';
 import { getPosts } from '@/services/posts.service';
 import { setPost } from '@/store/reducers/PostReducer';
 import HeaderLeft from '@/layouts/HeaderLeft';
+import { useRouter } from 'next/navigation';
 
 export default function page() {
     //Initialize
@@ -22,6 +23,7 @@ export default function page() {
     const [postsByUserOnline,setPostsByUserOnline]=useState<Post[]>([]);
     const [viewFollowers,setViewFollowers]=useState<boolean>(false);
     const [viewUserFollow,setViewUserFollow]=useState<boolean>(false);
+    const router=useRouter();
     //get data
     useEffect(()=>{
       dispatch(getUsers());
@@ -48,15 +50,15 @@ export default function page() {
     const openModalPost=(post:Post)=>{
       dispatch(setPost(post));
       dispatch(activeModalAllComment());
+      router.push(`/home/${post.id}`)
     }
   return (
     <>
     <><title>Personal</title>   </>
     <HeaderLeft/>
     <div className='p-[50px] ml-[230px]'>
-      
-        <header className='px-[40px] flex gap-[80px] items-center'>
-        {loading&&<div className='loader absolute top-[100px] right-[850px] '></div>}
+        <header className='px-[40px] flex gap-[80px] items-center relative'>       
+        {loading&&<div className="lds-ellipsis absolute top-[-30px] right-[-120px]"><div></div><div></div><div></div><div></div></div>}
             <img onClick={openModalAvatar} className='cursor-pointer w-[150px] h-[150px] rounded-[50%]' src={userOnline?.avatar} alt="" />
             <div className='flex flex-col gap-[30px]'>
                 <div className='flex gap-[20px] items-center'>

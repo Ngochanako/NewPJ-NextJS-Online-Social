@@ -131,6 +131,7 @@ export default function Page() {
 
   return (
     <div className= {`${style.register} flex items-center justify-center`}>
+      <title>Sign up</title>
       <div className='w-[350px] border-gray-300 h-[600px] border-solid border-1 p-[30px] flex flex-col gap-[20px] mt-[10px]'>
         <p className='text-[rgb(115,115,115)] font-[600] text-center'>Sign up to see photos and videos from your friends</p>
         <Button className='bg-[rgb(0,149,246)] border-transparent rounded-[5px] p-[10px] text-white' variant="primary">Login with Facebook</Button>

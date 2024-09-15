@@ -11,7 +11,7 @@ import { activeModalAllComment } from '@/store/reducers/ModalReducer';
 import { setPost } from '@/store/reducers/PostReducer';
 import { getUsers, updateUser } from '@/services/users.service';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 export default function page() {
     //Initialize
     const dispatch=useDispatch();
@@ -22,6 +22,14 @@ export default function page() {
     const [usersUnFolow,setUsersUnfolow]=useState<User[]>([]);
     const [posts,setPosts]=useState<Post[]>([]);
     const router=useRouter();
+    const searchParam=useSearchParams();
+    //check if url include ?idPost to open Modal All Comment
+    useEffect(()=>{
+       const idPost=searchParam.get('id');
+       if(idPost){
+        dispatch(activeModalAllComment());
+       }
+    },[searchParam])
     //get data from API
     useEffect(()=>{
       dispatch(getUsers());
@@ -45,13 +53,13 @@ export default function page() {
         let newPosts=[];
         for(let post of postsLocal){
           if(post.lock) continue;
-          if(post.idUser===userOnline.id){
+          if(post.idUser===userOnline?.id){
             newPosts.push(post);
           }else{
             if(post.status=='Công khai'){
               newPosts.push(post);
             }
-            if(post.status=='Riêng tư'&&userOnline.followUsersById.includes(post.idUser)){
+            if(post.status=='Riêng tư'&&userOnline?.followUsersById.includes(post.idUser)){
               newPosts.push(post);
             }
           }        
@@ -102,7 +110,7 @@ export default function page() {
      //open modal View Comments
      const viewComments=(post:Post)=>{
         dispatch(activeModalAllComment());
-        dispatch(setPost(post));
+        dispatch(setPost(post))
         router.push(`/home?id=${post.id}`);
      }
      //calculate total commments
@@ -199,10 +207,10 @@ export default function page() {
 
       {/* User start */}
       <section className='p-[20px] font-bold'>
-         <div className='flex flex-col gap-[20px] '>
-          <div className='flex justify-between'>
+         <div className='flex flex-col gap-[20px] w-[250px] '>
+          <div className='flex justify-between items-center w-[100%]'>
                
-                  <div className='flex items-center'>
+                  <div className='flex items-center gap-[10px]'>
                       <img className='w-[50px] h-[50px] rounded-[50%]' src={userOnline?.avatar} alt="" />
                         <p className=''>{userOnline?.username}</p>
                   </div>
@@ -216,14 +224,14 @@ export default function page() {
           <div className='flex flex-col gap-[10px]'>
               {usersUnFolow.map(btn=>(
                  <div key={btn.id} className='flex justify-between items-center'>
-                 <div className='flex items-center'>
+                 <div className='flex items-center gap-[10px]'>
                     <Link className='no-underline' href={`/user/${btn.id}`}><img className='w-[50px] h-[50px] rounded-[50%]' src={btn.avatar} alt="" /></Link> 
                      <div>
-                        <Link className='no-underline' href={`/user/${btn.id}`}><p className=''>{btn.username}</p> </Link> 
+                        <Link className='no-underline text-[14px]' href={`/user/${btn.id}`}><p className=''>{btn.username}</p> </Link> 
                         <p className='text-gray-400 text-[14px] font-normal'> Gợi ý cho bạn</p>
                      </div>
                  </div>
-                 <div onClick={()=>followUser(btn)} className='text-orange-600 text-[14px] cursor-pointer'>{btn.requestFollowById?.includes(userOnline?.id)?"Đã gửi yêu cầu theo dõi":'Theo dõi'}</div>
+                 <div onClick={()=>followUser(btn)} className='text-orange-600 text-[12px] cursor-pointer'>{btn.requestFollowById?.includes(userOnline?.id)?"Đã gửi yêu cầu theo dõi":'Theo dõi'}</div>
             </div>
               ))}
           </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Carousel from 'react-bootstrap/Carousel';
 import { useDispatch, useSelector } from 'react-redux';
 import { activeModalEditPost, activeModalUpdatePost, disableModalAllComment } from '../store/reducers/ModalReducer';
@@ -13,7 +13,13 @@ import { addNewCommentChild, getCommentsChild } from '@/services/commentsChild.s
 import { getPosts, updatePost } from '@/services/posts.service';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import '@/styles/modal.css'
+import { updateUser } from '@/services/users.service';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/config/firebase';
+import { ref } from 'firebase/storage';
 export default function ModalAllComment() {
+    const commentsRef=useRef<{[key:string]:HTMLDivElement|null}>({});
+    const refEnd=useRef<HTMLDivElement|null>(null);;
     const router=useRouter();
     const pathName=usePathname();
     const commentsChild=useSelector((state:State)=>state.commentsChild);
@@ -53,10 +59,11 @@ export default function ModalAllComment() {
     const [visibleComments,setVisibleComment]=useState<any>({});
     const [idCommentViewMore,setIdCommentViewMore]=useState<string>('');
     const [valueComment, setValueComment]=useState<string>('');
-    const [typeCommentPost,setTypeCommentPost]=useState<{type:string,id:string,userName:string}>({type:'',id:'',userName:''});
+    const [typeCommentPost,setTypeCommentPost]=useState<{type:string,idComment:string,userName:string,idUser:string}>({type:'',idComment:'',userName:'',idUser:''});
     const [commentsParentUser,setCommentsParentUser]=useState<CommentParent[]>([]);
     const postLocal=useSelector((state:State)=>state.post);
     const searchParam=useSearchParams();
+    
     useEffect(()=>{
         let idPost=searchParam.get('id');
         if(idPost){
@@ -109,7 +116,11 @@ export default function ModalAllComment() {
     }
     //follow User
     const followUser=()=>{
-        
+        let newUser={
+            ...user,
+            requestFollowById:[...user.requestFollowById,userOnline.id]
+        }
+        dispatch(updateUser(newUser));
     }
     //view more Comment
     const viewMoreComment=(idComment:string,lengthComments:number)=>{
@@ -126,29 +137,47 @@ export default function ModalAllComment() {
                 ...post,
                 favouristUsersById:post.favouristUsersById.filter(btn=>btn!==userOnline.id)
             }
-            dispatch(setPost(newPost));
+            // dispatch(setPost(newPost));
+            setPostPage(newPost);
             dispatch(updatePost(newPost));
         }else{
             let newPost={
                 ...post,
                 favouristUsersById:[...post.favouristUsersById,userOnline.id]
             }
-            dispatch(setPost(newPost));
+            setPostPage(newPost)
             dispatch(updatePost(newPost));
+            //create new Notify and upload to firebase
+            if(userOnline.id!=user.id){
+                const newNotify=async()=>{
+                    try {
+                       const docREf=await addDoc(collection(db,'notifications'),{
+                        detail:`${userOnline.username} vừa thích bài viết của bạn`,
+                        url:`/home?id=${post.id}`,
+                        idUser:user.id,
+                        status:true,
+                        created:serverTimestamp(),
+                        idUserSendNotify:userOnline.id
+                       }) 
+                    } catch (error) {
+                        console.log(error);                  
+                    }
+                }
+                newNotify();
+            }
         }
     }
     //handleChange Comment
     const handleChangeComment=(e:React.ChangeEvent<HTMLTextAreaElement>)=>{
         let value=e.target.value;
         if(value==''){
-            setTypeCommentPost({type:'',id:'',userName:''})
+            setTypeCommentPost({type:'',idComment:'',userName:'',idUser:''})
         }
         setValueComment(value);
     }
     // post Comment
     const postComment=(e:React.FormEvent)=>{
         e.preventDefault();
-        console.log(typeCommentPost.type);
         
         if(typeCommentPost.type==''){
             let newComment:CommentParent={
@@ -167,7 +196,28 @@ export default function ModalAllComment() {
                 commentsById:[...post.commentsById,newComment.id]
             }
             dispatch(updatePost(newPost));
-            dispatch(setPost(newPost));
+            setPostPage(newPost);
+            // dispatch(setPost(newPost));
+            //create new Notify and update to firebase
+            if(userOnline.id!==user.id){
+                const newNotify=async()=>{
+                    try {
+                        const docREf=await addDoc(collection(db,'notifications'),{
+                        detail:`${userOnline.username} đã bình luận bài viết của bạn`,
+                        url:`/home?id=${post.id}&idComment=${newComment.id}`,
+                        idUser:user.id,
+                        status:false,
+                        created:serverTimestamp(),
+                        idUserSendNotify:userOnline.id
+                        }) 
+                    } catch (error) {
+                        console.log(error);                  
+                    }
+                }
+                newNotify();
+            }
+            //cuộn trang đến tin nhắn mới nhất
+            refEnd.current?.scrollIntoView({behavior:'smooth'})
         }else if (typeCommentPost.type==='replyParent'){
             let newComment:CommentChild={
                 id:uuidv4(),
@@ -175,27 +225,47 @@ export default function ModalAllComment() {
                 avatarUser:userOnline.avatar,
                 userNameUser:userOnline.username,
                 postId:post.id,
-                idParent:typeCommentPost.id,
+                idParent:typeCommentPost.idComment,
                 userNameParent:typeCommentPost.userName,
                 detail:valueComment,
                 date:new Date().getTime()
             }
             dispatch(addNewCommentChild(newComment));
             
-            axios.get(`http://localhost:3000/commentsParent/${typeCommentPost.id}`)
+            axios.get(`http://localhost:3000/commentsParent/${typeCommentPost.idComment}`)
             .then(response=>{
                 let updateCommentParent:CommentParent={...response.data,commentsById:[...response.data.commentsById,newComment.id]};
                 dispatch(updateCommentsParent(updateCommentParent))
                 dispatch(getPosts());
             })
             .catch(err=>console.log(err))
+           // create new Notify and update to firebase
+           if(userOnline.id!==typeCommentPost.idUser){
+            const newNotify=async()=>{
+                try {
+                    const docREf=await addDoc(collection(db,'notifications'),{
+                    detail:`${userOnline.username} đã trả lời bình luận của bạn`,
+                    url:`/home?id=${post.id}&idComment=${newComment.id}`,
+                    idUser:typeCommentPost.idUser,
+                    status:false,
+                    created:serverTimestamp(),
+                    idUserSendNotify:userOnline.id
+                    }) 
+                } catch (error) {
+                    console.log(error);                  
+                }
+            }
+            newNotify();
+           }
+            //cuộn trang đến tin nhắn mới nhất
+            commentsRef.current[typeCommentPost.idComment]?.scrollIntoView({behavior:'smooth'})
         }
         setValueComment('');
-        setTypeCommentPost({type:'',id:'',userName:''});
+        setTypeCommentPost({type:'',idComment:'',userName:'',idUser:''});
     }
     //reply Comment
-    const replyComment=(idComment:string,usernameParent:string)=>{
-        setTypeCommentPost({type:'replyParent',id:idComment,userName:usernameParent});
+    const replyComment=(idComment:string,usernameParent:string,idUser:string)=>{
+        setTypeCommentPost({type:'replyParent',idComment:idComment,userName:usernameParent,idUser:idUser});
         setValueComment(`@${usernameParent} `);
         setValueUserName(`@${usernameParent} `)
     }
@@ -208,14 +278,24 @@ export default function ModalAllComment() {
         if (event.key === 'Backspace'&&valueComment===valueUserName) {
           // Xóa toàn bộ đoạn text khi nhấn Backspace
           setValueComment('');
-          setTypeCommentPost({type:'',id:'',userName:''})
+          setTypeCommentPost({type:'',idComment:'',userName:'',idUser:''})
           event.preventDefault();
         }
       };
+    //
+    useEffect(()=>{
+       //check if idComment of URL is available then scroll to view
+       let idComment=searchParam.get('idComment');
+       if(idComment){
+           commentsRef.current[idComment]?.scrollIntoView({behavior:'smooth'});
+       }else{
+           refEnd.current?.scrollIntoView({behavior:'smooth'}) 
+       }
+    },[commentsParent])
   return (
     <div className='modal'>
         <div onClick={closeModal} className='modal-close z-[1]'></div>
-        <div className='formModalAllComment flex'>
+        {!post.lock?<div className='formModalAllComment flex'>
         <i onClick={closeModal} className="fa-solid fa-xmark z-3 text-[30px] cursor-pointer text-white top-[20px] right-[20px] absolute"></i>
             {/* Slider Img or video */}
             <Carousel data-bs-theme="dark" className='mt-[20px] w-[380px]'>
@@ -236,11 +316,11 @@ export default function ModalAllComment() {
                             <img className='w-[50px] h-[50px] rounded-[50%]' src={user.avatar} alt="" />
                             <div className='font-bold'><Link className='no-underline' href={`/user/${user.id}`}>{user.username}</Link></div>
                     </div>
-                    <div onClick={openModalUpdatePost} className='flex items-center gap-[5px] cursor-pointer hover:text-gray-400'>
+                    {userOnline.id==user.id&&<div onClick={openModalUpdatePost} className='flex items-center gap-[5px] cursor-pointer hover:text-gray-400'>
                         <div className='w-[3px] h-[3px] bg-gray-600 rounded-[50%]'></div>
                         <div className='w-[3px] h-[3px] bg-gray-600 rounded-[50%]'></div>
                         <div className='w-[3px] h-[3px] bg-gray-600 rounded-[50%]'></div>
-                    </div>
+                    </div>}
                 </div>
                 
                 <hr />
@@ -261,10 +341,10 @@ export default function ModalAllComment() {
                                 <div className='flex items-center'>
                                     <img className='w-[50px] h-[50px] rounded-[50%]' src={btn.avatarUser} alt="" />
                                     <div>
-                                        <p className='text-[14px] font-bold'><Link href={`/user/${btn.idUser}`}>{btn.userNameUser}</Link><span className='text-[14px] font-normal'> {btn.detail}</span> </p>
-                                        <div className='flex gap-[20px] text-gray-500 text-[12px]'>
+                                        <p className='text-[14px] font-bold'><Link className='no-underline' href={`/user/${btn.idUser}`}>{btn.userNameUser}</Link><span className='text-[14px] font-normal'> {btn.detail}</span> </p>
+                                        <div ref={(el)=>{commentsRef.current[btn.id]=el}} className='flex gap-[20px] text-gray-500 text-[12px]'>
                                             <div>{convertTime((new Date().getTime()-btn.date)/60000)}</div>
-                                            <div onClick={()=>replyComment(btn.id,btn.userNameUser)} className='hover:text-gray-800 cursor-pointer'>Trả lời</div>
+                                            <div onClick={()=>replyComment(btn.id,btn.userNameUser,btn.idUser)} className='hover:text-gray-800 cursor-pointer'>Trả lời</div>
                                         </div>
                                     </div>
                                 </div>
@@ -276,14 +356,14 @@ export default function ModalAllComment() {
                                    <div>                                     
                                         <div className={idCommentViewMore===btn.id?'flex flex-col gap-[10px]':'hidden flex flex-col gap-[10px]'}>
                                             {commentsChildUser(btn.commentsById).slice(0,visibleComments[btn.id]).map(item=>(
-                                            <div className='flex justify-between items-center' key={item.id}>
+                                            <div className='flex justify-between items-center' ref={(el)=>{commentsRef.current[item.id]=el}} key={item.id}>
                                                 <div className='flex items-center'>
                                                     <img className='w-[50px] h-[50px] rounded-[50%]' src={item.avatarUser} alt="" />
                                                     <div>
                                                         <div className='flex gap-[5px] items-center'><Link className='text-black' href={`/user/${item.idUser}`}>{item.userNameUser}</Link> {item.detail}</div>
                                                         <div className='flex gap-[20px] text-gray-500 text-[12px]'>
                                                             <div>{convertTime((new Date().getTime()-item.date)/60000)}</div>
-                                                            <div onClick={()=>replyComment(btn.id,item.userNameUser)}  className='hover:text-gray-800 cursor-pointer'>Trả lời</div>
+                                                            <div onClick={()=>replyComment(btn.id,item.userNameUser,item.idUser)}  className='hover:text-gray-800 cursor-pointer'>Trả lời</div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -300,7 +380,7 @@ export default function ModalAllComment() {
                         </div>
                         
                     ))}     
-                    
+                    <div ref={refEnd}></div>
                  </div>
                 {/* All Comment end */}
                 <hr />
@@ -326,7 +406,8 @@ export default function ModalAllComment() {
                     </div>             
                 </form>
             </div>
-        </div>      
+        </div> :<div className='text-red-500 font-bold text-center'>Bài viết đã bị khóa!</div>
+        }     
     </div>
   )
 }

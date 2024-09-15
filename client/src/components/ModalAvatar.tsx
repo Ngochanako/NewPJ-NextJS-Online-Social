@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { disableModalAvatar } from '../store/reducers/ModalReducer';
 import { ref,uploadBytes,getDownloadURL } from 'firebase/storage';
@@ -7,11 +7,16 @@ import { updateUser } from '../services/users.service';
 import { Group, State, User } from '../interfaces';
 import { activeLoading, disableLoading } from '../store/reducers/LoadingReducer';
 import { setUserLogin } from '@/store/reducers/UserReducer';
+import { getPosts, updatePost } from '@/services/posts.service';
 export default function ModalAvatar() {
     const dispatch=useDispatch();
     const userOnline:User=useSelector((state:State)=>state.user);
     const modalAvatar=useSelector((state:State)=>state.modal.avatar)
-    const group=useSelector((state:State)=>state.group)
+    const posts=useSelector((state:State)=>state.posts)
+    //get data
+    useEffect(()=>{
+        dispatch(getPosts())
+    },[])
     const closeModal=()=>{
         dispatch(disableModalAvatar({type:'',status:false}))
     }
@@ -28,6 +33,9 @@ export default function ModalAvatar() {
               dispatch(updateUser(userUpdate));
               dispatch(setUserLogin(userUpdate)); 
               localStorage.setItem('user',JSON.stringify(userUpdate));
+              posts.filter(post=>post.idUser===userOnline.id).map(btn=>{
+                 dispatch(updatePost({...btn,avaterUser:url}))
+              })
             }else if(modalAvatar.type=='group'){
               
             }
@@ -45,7 +53,7 @@ export default function ModalAvatar() {
             <hr/>
             <form action="">
                  <input onChange={handleChange} className='hidden' type="file" id='avatar' />
-                 <label className='text-orange-600 font-bold text-[14px] text-center cursor-pointer' htmlFor="avatar">Tải ảnh lên</label>
+                 <div className='text-center'><label className='text-orange-600 font-bold text-[14px] text-center cursor-pointer' htmlFor="avatar">Tải ảnh lên</label></div>
             </form>
             <hr />
             <div className='text-center text-[14px] font-bold text-indigo-800 cursor-pointer'>Gỡ ảnh hiện tại</div> 

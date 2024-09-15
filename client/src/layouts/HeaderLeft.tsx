@@ -1,26 +1,27 @@
 'use client'
-import { State, User } from '@/interfaces';
+import { Notify, State, User } from '@/interfaces';
 import { getUsers, updateUser } from '@/services/users.service';
-import { activeModalPost } from '@/store/reducers/ModalReducer';
+import { activeModalNewMessage, activeModalPost } from '@/store/reducers/ModalReducer';
 import { logoutUser, setUserLogin } from '@/store/reducers/UserReducer';
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
 import Button from 'react-bootstrap/Button';
 import { useDispatch, useSelector } from 'react-redux';
 import style from '@/styles/headerLeft.module.css'
-import { ModalDialog } from 'react-bootstrap';
 import ModalCreatePost from '@/components/ModalCreatePost';
 import ModalUploadPost from '@/components/ModalUploadPost';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
 import ModalAvatar from '@/components/ModalAvatar';
 import ModalAllComment from '@/components/ModalAllComment';
 import ModalDelete from '@/components/ModalDelete';
 import ModalEditPost from '@/components/ModalEditPost';
-import ModalDetailUser from '@/components/ModalDetailUser';
 import ModalUpdatePost from '@/components/ModalUpdatePost';
+import ModalNewMessage from '@/components/ModalNewMessage';
+import { collection, doc, limit, onSnapshot, orderBy, query, updateDoc, where } from 'firebase/firestore';
+import { db } from '@/config/firebase';
 export default function HeaderLeft() {
   //Initiliaze
+  const [notify,setNotify]=useState<boolean>(false);
   const dispatch=useDispatch();
   const [search,setSearch]=useState<boolean>(false);
   const [usersSearch,setUsersSearch]=useState<User[]>([]);
@@ -32,7 +33,7 @@ export default function HeaderLeft() {
   const userOnline=useSelector((state:State)=>state.user);
   const modal=useSelector((state:State)=>state.modal);
   const router=useRouter();
-
+  const [notifications,setNotifications]=useState<Notify[]>([]);
   //get data
   useEffect(()=>{
      dispatch(getUsers())
@@ -92,7 +93,7 @@ export default function HeaderLeft() {
   }
   //open modal Post
    const openModalPost=()=>{
-     dispatch(activeModalPost({type:'personal',status:true}));
+      dispatch(activeModalPost({type:'personal',status:true}));
    }
    //logout
    const logout=()=>{
@@ -100,6 +101,53 @@ export default function HeaderLeft() {
     localStorage.removeItem('user');
     router.push('/login');
    }
+   //handle click open Notification
+   const handleClickNotify=()=>{
+    setNotify(!notify);
+   }
+   //close Notify
+   const closeNotify=()=>{
+    setNotify(false);
+   }
+   //get data Notifications from firebase
+   useEffect(()=>{
+       if(userOnline){
+          const q=query(collection(db,'notifications'),
+          where('idUser','==',userOnline.id),
+          orderBy('created','desc'),
+          limit(10))
+          const unsubscribe=onSnapshot(q,(querySnapshot)=>{
+            if( querySnapshot.empty){
+               console.log('Không có dữ liệu');
+               
+            }else{
+              let list:Notify[]=[];
+              querySnapshot.forEach((doc)=>{
+                const data=doc.data() as Notify;
+                list.push({
+                  ...data,
+                  id:doc.id
+                })
+              })
+              console.log(list);
+              
+              setNotifications(list);
+            }
+          })
+          return ()=>unsubscribe();
+       }
+   },[userOnline])
+   //handle click Notify
+   const clickNotify=async(btn:Notify)=>{  
+    try {
+       // Cập nhật trường status của notify
+      await updateDoc(doc(db, 'notifications',btn.id), {
+        status:true
+      });
+    } catch (e) {
+        console.error("Error adding document: ", e);
+    }
+  }
   return (
     <div>
       {modal.post.status&&<ModalCreatePost/>}
@@ -109,7 +157,8 @@ export default function HeaderLeft() {
       {modal.delete&&<ModalDelete/>}
       {modal.editPost&&<ModalEditPost/>}
       {modal.updatePost&&<ModalUpdatePost/>}
-      <header className={`${style.headerLeft}  p-[30px] fixed`}>
+      {modal.newMessage&&<ModalNewMessage/>}
+      <header className={`${style.headerLeft} bg-gray-900 text-gray-400 p-[30px] fixed`}>
         <div className={`${style.headerListItem} mb-[30px]`}>
           <i className="fa-brands fa-instagram text-[20px]"></i>
           <div className='text-[20px] font-[600]'>INSTAGRAM</div>
@@ -176,13 +225,34 @@ export default function HeaderLeft() {
           <div className=''>Nhóm</div>
        
         </Link>
-        <div className={style.headerListItem}>
+        <Link href={'/message'} className={style.headerListItem}>
         <i className="fa-brands fa-facebook-messenger text-[#565555] text-[22px]"></i>
           <div className=''>Tin nhắn</div>
-        </div>
+        </Link>
         <div className={style.headerListItem}>
-        <i className="fa-solid fa-heart text-[#565555] text-[22px]"></i>
-          <div className=''>Thông báo</div>
+        <i style={{color:notifications.filter(btn=>!btn.status).length>0?'white':''}} className="fa-solid fa-heart text-[#565555] text-[22px]"></i>
+          <div onClick={handleClickNotify} className=''>Thông báo</div>
+          {notify&&
+          <div className="absolute z-1000 top-0 left-20 w-[400px] h-[99%]  bg-white flex flex-col gap-[20px] p-[10px] rounded-r-[10px] shadow-lg z-[10] overflow-auto">
+            <i onClick={closeNotify} className="fa-solid fa-xmark z-3 text-[30px] cursor-pointer text-gray-600 top-[20px] right-[20px] absolute"></i>
+            <div className='text-[30px] font-bold'>Thông báo</div> 
+            <div className='flex flex-col gap-[10px] text-center justify-center'>
+            <i className="fa-regular fa-heart text-[30px]"></i>
+             <div className='text-[14px]'>Hoạt động trên bài viết của bạn</div>
+             <div className='text-[14px]'>Khi có người thích hoặc bình luận về một trong những bài viết của bạn, bạn sẽ nhìn thấy nó ở đây.</div>
+            </div> 
+            <hr />
+            {/* render Notifications */}
+            <div className='flex flex-col gap-[10px]'>
+            {notifications.map((btn)=>(
+              <div key={btn.id} style={{backgroundColor:btn.status?'':'rgb(240,242,245)'}} className='flex items-center gap-[10px]'>
+                  <img className='rounded-[50%] w-[50px] h-[50px]' src= {users.find(user=>user.id==btn.idUserSendNotify)?.avatar} alt="" />         
+                  <div onClick={()=>clickNotify(btn)}><Link href={btn.url} className='no-underline'>{btn.detail}</Link></div>
+                  <div className='text-[14px] text-red-300'>{new Date(btn.created?.toDate()).toDateString()}</div>
+              </div>
+            ))}
+            </div>
+          </div>}
         </div>
         <div className={style.headerListItem}>
         <i className="fa-solid fa-plus text-[#565555] text-[22px]"></i>
@@ -196,10 +266,10 @@ export default function HeaderLeft() {
         <i className="fa-solid fa-bars text-[#565555] text-[22px] relative"></i>
           <div  className=''>Xem thêm</div>
           {/* section View More */}
-          {viewMore &&  <div className='flex flex-col p-[10px] bg-white absolute top-[350px] right-[20px] z-[1000] shadow-2xl rounded-lg'>
+          {viewMore &&  <div className='flex flex-col p-[10px] bg-white absolute top-[380px] right-[20px] z-[1000] shadow-2xl rounded-lg'>
               <div className={`${style.viewmoreItem} flex gap-[20px]`}>
                 <i className="fa-solid fa-gear"></i>
-                <Link  href={'/edit'}> Chỉnh sửa trang cá nhân</Link>
+                <Link className='no-underline' href={'/edit'}> Chỉnh sửa trang cá nhân</Link>
               </div>
               <div className={`${style.viewmoreItem} flex gap-[20px]`}>
                 <i className="fa-solid fa-chart-line"></i>

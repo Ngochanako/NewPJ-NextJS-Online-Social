@@ -65,6 +65,7 @@ export type Modal={
     delete:boolean,
     editPost:boolean,
     detailUser:boolean,
+    newMessage:boolean
 }
 export type Group={
     id:string,
@@ -90,4 +91,33 @@ export type State={
     groups:Group[],
     group:Group,
     loading:boolean
+}
+export type Message={
+    id:string,
+    idRoom:string,
+    idUser:string,
+    username:string,
+    avatar:string,
+    detail:string,
+    created:any,
+}
+export type Room={
+    id:string,
+    created:any,
+    newTime:string,
+    usersById:string[],
+    hasMessage:boolean,
+    status:boolean,
+}
+export type MessageGroupByDate={
+    [date:string]:Message[];
+}
+export type Notify={
+    id:string,
+    detail:string,
+    url:string,
+    idUser:string,
+    status:boolean,
+    created:any,
+    idUserSendNotify:string,
 }

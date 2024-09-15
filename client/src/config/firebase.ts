@@ -1,16 +1,27 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app" ;   
+// Import các module cần thiết từ SDK Firebase
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import firebase from "firebase/compat/app";
+import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-// Your web app's Firebase configuration
-const firebaseConfig = { 
-  apiKey : process.env.VITE_KEY_FIREBASE, 
-  authDomain : "online-social-2adfa.firebaseapp.com" , 
-  projectId : "online-social-2adfa" , 
-  storageBucket : "online-social-2adfa.appspot.com" , 
-  messagingSenderId : "645607566050" , 
-  appId : "1:645607566050:web:5062cb0745170da1fdccbb" 
+
+// Cấu hình Firebase
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain : "test-d0131.firebaseapp.com" , 
+  projectId : "test-d0131" , 
+  storageBucket : "test-d0131.appspot.com" , 
+  messagingSenderId : "617421059193" , 
+  appId : "1:617421059193:web:4cbb852bb84de1bf4050a8" , 
+  measurementId : "G-20J4RL301G" 
 };
 
-// Initialize Firebase
+// Khởi tạo Firebase App
 const app = initializeApp(firebaseConfig);
-export const storage=getStorage(app)
+
+// Khởi tạo các dịch vụ Firebase
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+export { auth, db, storage };
+export default firebase;
