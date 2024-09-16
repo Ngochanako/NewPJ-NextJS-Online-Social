@@ -12,6 +12,7 @@ import { getUsers, updateUser } from '@/services/users.service';
 import styles from '@/styles/pagination.module.css'
 import axios from 'axios';
 import classNames from 'classnames';
+import { basename } from 'node:path/win32';
 export default function page() {
   const router=useRouter();
   const dispatch=useDispatch();
@@ -65,13 +66,13 @@ export default function page() {
     axios.get(`http://localhost:3000/users?username_like=${search}`)
     .then(response=>{
         setUsersByTotal(response.data)
-        setTotalPage(Math.ceil(response.data.length/2));
+        setTotalPage(Math.ceil(response.data.length));
     })
     .catch(err=>console.log(err))
 },[search])
 useEffect(()=>{
     axios
-    .get(`http://localhost:3000/users?_page=${currentPage}&_limit=2&username_like=${search}`)
+    .get(`http://localhost:3000/users?_page=${currentPage}&_limit=1&username_like=${search}`)
     .then((response) => {
       setUsers(response.data);
     })
@@ -97,12 +98,15 @@ const handlePageFirst=()=>{
 const handleNext=()=>{
     setCurrentPage(currentPage+1);
 }
+
 //render pages
 const renderPagesNumber=()=>{
     let pages=[];
     let a:number=2;
     let b:number=0;
-    if(totalPage<4){
+    console.log(totalPage);
+    
+    if(totalPage<=4){
        b=totalPage-1
     }else{
         if(currentPage<4){
@@ -117,6 +121,7 @@ const renderPagesNumber=()=>{
     }
     
     for(let i=a;i<=b;i++){
+      
         pages.push(
             <button onClick={()=>handlePageChange(i)} 
             className={classNames(styles.pagesNumber,{
@@ -217,7 +222,7 @@ const renderPagesNumber=()=>{
                     </button>
                     <div className={`${currentPage<4?'hidden':''}`}>...</div>
                     {renderPagesNumber()}
-                    <div className={`${currentPage>17||totalPage<4?'hidden':''}`}>...</div>
+                    <div className={`${currentPage>totalPage-3||totalPage<=4?'hidden':''}`}>...</div>
                     <button
                             onClick={handlePageLast}
                             className={classNames(styles.pagesNumber, {

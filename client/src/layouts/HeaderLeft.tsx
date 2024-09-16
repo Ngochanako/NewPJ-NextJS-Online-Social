@@ -19,6 +19,7 @@ import ModalUpdatePost from '@/components/ModalUpdatePost';
 import ModalNewMessage from '@/components/ModalNewMessage';
 import { collection, doc, limit, onSnapshot, orderBy, query, updateDoc, where } from 'firebase/firestore';
 import { db } from '@/config/firebase';
+import axios from 'axios';
 export default function HeaderLeft() {
   //Initiliaze
   const [notify,setNotify]=useState<boolean>(false);
@@ -34,6 +35,25 @@ export default function HeaderLeft() {
   const modal=useSelector((state:State)=>state.modal);
   const router=useRouter();
   const [notifications,setNotifications]=useState<Notify[]>([]);
+  //if  UserOnline is locked
+  useEffect(()=>{
+    const savedUser = JSON.parse(localStorage.getItem("user") || "null");
+    if(savedUser){
+      axios.get(`http://localhost:3000/users/${savedUser.id}`)
+      .then(res=>{
+        if(!res.data.status){
+          router.push('/login');
+          localStorage.removeItem('user');
+          dispatch(logoutUser());
+        }else{
+          dispatch(setUserLogin(res.data));
+        }
+      })
+    }else{
+      router.push('/login');
+    }   
+  },[users])
+
   //get data
   useEffect(()=>{
      dispatch(getUsers())
@@ -60,18 +80,25 @@ export default function HeaderLeft() {
   }
   // get list users request follow
   useEffect(()=>{
-     const listRequestFollow=users.filter((user:User)=>userOnline?.requestFollowById.includes(user.id));
-     setUsersRequestFollow(listRequestFollow);
+    if(userOnline){
+      axios.get(`http://localhost:3000/users/${userOnline.id}`)
+      .then(res=>{
+        const newUserOnline=res.data;
+        const listRequestFollow=users.filter((user:User)=>newUserOnline.requestFollowById.includes(user.id));
+      
+        setUsersRequestFollow(listRequestFollow);
+      })
+    }    
   },[users,userOnline])
   //accept request follow
   const confirmRequestFollow=(user:User)=>{
     const newUserOnline:User={
       ...userOnline,
-      requestFollowById:userOnline.requestFollowById.filter(btn=>btn!==user.id)
+      requestFollowById:userOnline?.requestFollowById.filter(btn=>btn!==user.id)
     }
     const newUserUpdateFollow:User={
       ...user,
-      followUsersById:[...user.followUsersById,userOnline.id]
+      followUsersById:[...user.followUsersById,userOnline?.id]
     }
     dispatch(updateUser(newUserUpdateFollow));
     dispatch(updateUser(newUserOnline));
@@ -81,7 +108,7 @@ export default function HeaderLeft() {
   const cancelRequestFollow=(user:User)=>{
     const newUser={
       ...userOnline,
-      requestFollowById:userOnline.requestFollowById.filter(btn=>btn!==user.id)
+      requestFollowById:userOnline?.requestFollowById.filter(btn=>btn!==user.id)
     }
     dispatch(updateUser(newUser));
     dispatch(setUserLogin(newUser));
@@ -129,7 +156,6 @@ export default function HeaderLeft() {
                   id:doc.id
                 })
               })
-              console.log(list);
               
               setNotifications(list);
             }
@@ -138,15 +164,17 @@ export default function HeaderLeft() {
        }
    },[userOnline])
    //handle click Notify
-   const clickNotify=async(btn:Notify)=>{  
-    try {
-       // Cập nhật trường status của notify
-      await updateDoc(doc(db, 'notifications',btn.id), {
-        status:true
-      });
-    } catch (e) {
-        console.error("Error adding document: ", e);
-    }
+   const clickNotify=async(btn:Notify)=>{
+    if(!btn.status){
+      try {
+        // Cập nhật trường status của notify
+       await updateDoc(doc(db, 'notifications',btn.id), {
+         status:true
+       });
+     } catch (e) {
+         console.error("Error adding document: ", e);
+     }
+    } 
   }
   return (
     <div>
@@ -182,7 +210,7 @@ export default function HeaderLeft() {
                       <div className='flex items-center gap-[10px]'>
                       <img className='w-[50px] h-[50px] rounded-[50%]' src={btn.avatar} alt="" />
                        <div>
-                       <Link href={`/user/${btn.id}`}><div className=''>{btn.username}</div></Link>
+                       <Link className='no-underline' href={`/user/${btn.id}`}><div className=''>{btn.username}</div></Link>
                        {/* <p className="text-gray-500 text-[14px]">{btn.followersById.length} người theo dõi</p> */}
                        </div>
                   </div>
@@ -195,7 +223,7 @@ export default function HeaderLeft() {
         <div className={style.headerListItem}>
          <i className="fa-solid fa-user-plus text-[#565555] text-[22px]"></i>
           <div onClick={openRequestFollow} className=''>Theo dõi</div>
-          {userOnline?.requestFollowById.length>0&&<div className="w-[20px] h-[20px] rounded-[50%] bg-red-500 text-white flex justify-center items-center absolute right-[190px] top-[220px]">{userOnline.requestFollowById.length}</div>}
+          {userOnline?.requestFollowById.length>0&&<div className="w-[20px] h-[20px] rounded-[50%] bg-red-500 text-white flex justify-center items-center absolute right-[190px] top-[220px]">{userOnline?.requestFollowById.length}</div>}
           <div></div>
           {requestFollow&&
           <div className="absolute z-[1000] top-0 left-20 w-[400px] h-[99%]  bg-white flex flex-col gap-[50px] rounded-r-[10px] shadow-lg">
@@ -246,7 +274,7 @@ export default function HeaderLeft() {
             <div className='flex flex-col gap-[10px]'>
             {notifications.map((btn)=>(
               <div key={btn.id} style={{backgroundColor:btn.status?'':'rgb(240,242,245)'}} className='flex items-center gap-[10px]'>
-                  <img className='rounded-[50%] w-[50px] h-[50px]' src= {users.find(user=>user.id==btn.idUserSendNotify)?.avatar} alt="" />         
+                  {btn.idUserSendNotify!==''&&<img className='rounded-[50%] w-[50px] h-[50px]' src= {users.find(user=>user.id==btn.idUserSendNotify)?.avatar} alt="" />}         
                   <div onClick={()=>clickNotify(btn)}><Link href={btn.url} className='no-underline'>{btn.detail}</Link></div>
                   <div className='text-[14px] text-red-300'>{new Date(btn.created?.toDate()).toDateString()}</div>
               </div>

@@ -4,6 +4,8 @@ import type { User } from '@/interfaces';
 import HeaderLeft from '@/layouts/HeaderLeft';
 import { getPosts } from '@/services/posts.service';
 import { getUsers, updateUser } from '@/services/users.service';
+import { setUserLogin } from '@/store/reducers/UserReducer';
+import { log } from 'console';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
@@ -41,22 +43,22 @@ export default function page({params}:ParamsProp) {
     //get posts of User
     useEffect(()=>{
         //get list posts include posts of user which have status different 'Only you'
-       const newPosts=posts.filter(post=>post.id===id&&post.status!=='Chỉ mình tôi');
+       const newPosts=posts.filter(post=>post.idUser===id&&post.status!=='Chỉ mình tôi');
        //case user is private
-       if(user.private){
+       if(!user.private){
         //if userOnline is follower of user
-        if(userOnline.followUsersById.includes(user.id)){
+        if(userOnline?.followUsersById.includes(user.id)){
             setPostsByUser(newPosts);
         }else{
             // only get posts of user which have status 'Public'
             const postsFinally = newPosts.filter(btn=>btn.status=='Công khai');
             setPostsByUser(postsFinally);
         }
-       }else{
-          setPostsByUser(newPosts);
+       }else{          
+          setPostsByUser([]);
        }
       
-    },[posts,user])
+    },[posts,user,id])
     //get detail user 
     useEffect(()=>{
         const newUser=users.find(user=>user.id==id);
@@ -86,6 +88,7 @@ export default function page({params}:ParamsProp) {
         }
         localStorage.setItem('user',JSON.stringify(newUser));
         dispatch(updateUser(newUser));
+        dispatch(setUserLogin(newUser));
         //if userOnline request follow user
     }else if(user.requestFollowById.includes(userOnline.id)){
         const newUser={
@@ -126,7 +129,7 @@ export default function page({params}:ParamsProp) {
             <i className='bx bx-plus bx-border-circle text-[55px] bg-[rgb(250,250,250)] text-[rgb(199,199,199)] border-1'></i>
             <p className='text-[14px] ml-[25px] font-bold'>Mới</p>
         </div>
-        <hr className='' />
+        <hr className='z-[-1]' />
         <div className='my-[20px] flex justify-center gap-[50px]'>
             <div className='flex items-center gap-[10px]  text-black cursor-pointer'>
             <i className='bx bx-menu bx-border'></i>

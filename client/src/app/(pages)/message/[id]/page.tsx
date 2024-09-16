@@ -108,6 +108,7 @@ export default function page({params}:ParamProps) {
     const handleClickSendMsg=async()=>{ 
       setMessage(''); // Xóa trắng input    
       try {
+        
         const docRef = await addDoc(collection(db, "messages"), {
             created:serverTimestamp(),
             idRoom:idRoom,

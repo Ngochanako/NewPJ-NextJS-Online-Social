@@ -24,6 +24,7 @@ export default function Messages() {
     //get list rooms chat from firebase
     useEffect(() => {
       if (userOnline) {
+        
         const q = query(
           collection(db, 'chats'),
           where('usersById', 'array-contains', userOnline.id),
@@ -44,6 +45,8 @@ export default function Messages() {
                 id: doc.id,
               });
             });
+            console.log(rooms);
+            
             setListRoom(rooms);
           }
         });

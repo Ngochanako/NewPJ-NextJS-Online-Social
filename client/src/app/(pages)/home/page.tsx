@@ -71,7 +71,7 @@ export default function page() {
         
         const newUser={
           ...user,
-          requestFollowById:[...user.requestFollowById,userOnline.id]
+          requestFollowById:[...user.requestFollowById,userOnline?.id]
         }
         dispatch(updateUser(newUser));
     }
@@ -93,16 +93,16 @@ export default function page() {
      }
      //like post
      const likePost=(post:Post)=>{
-          if(post.favouristUsersById.includes(userOnline.id)){
+          if(post.favouristUsersById.includes(userOnline?.id)){
             const newPost={
                 ...post,
-                favouristUsersById:post.favouristUsersById.filter(btn=>btn!=userOnline.id)
+                favouristUsersById:post.favouristUsersById.filter(btn=>btn!=userOnline?.id)
             }
             dispatch(updatePost(newPost));
           }else{
           const newPost={
              ...post,
-              favouristUsersById:[...post.favouristUsersById,userOnline.id]
+              favouristUsersById:[...post.favouristUsersById,userOnline?.id]
           };
           dispatch(updatePost(newPost));
           }
@@ -160,11 +160,14 @@ export default function page() {
                     <Carousel data-bs-theme="dark" className=' mt-[20px] '>
                       {btn.images.map((item,index)=>(
                         <Carousel.Item key={index} className=''>
-                          <Image
-                             alt='Image'
-                             src={item}
-                             width={500}
-                             height={400}
+                         <Image
+                            className="d-block w-100 max-h-[400px] object-cover"
+                            src={item}
+                            alt=""
+                            layout="responsive" // Điều chỉnh layout để tương thích với w-100
+                            width={100} // Width 100% cần được set như giá trị cho layout responsive
+                            height={400} // Đặt chiều cao tối đa
+                            objectFit="cover" // Thay thế cho object-cover trong Tailwind CSS
                           />
                           
                         </Carousel.Item>
@@ -177,7 +180,7 @@ export default function page() {
                     <div className='flex flex-col gap-[10px] mt-[20px]'>
                         <div className='flex justify-between'>
                           <div className='flex gap-[10px] text-[20px]'>
-                              <i onClick={()=>likePost(btn)} className={`bx bx-heart bx-border hover:border-gray-400 cursor-pointer ${btn.favouristUsersById.find(item=>item===userOnline.id)?'text-red-700':''}`}></i>
+                              <i onClick={()=>likePost(btn)} className={`bx bx-heart bx-border hover:border-gray-400 cursor-pointer ${btn.favouristUsersById.find(item=>item===userOnline?.id)?'text-red-700':''}`}></i>
                               <i onClick={()=>viewComments(btn)} className='bx bxs-comment bx-border-circle hover:border-gray-400 cursor-pointer'></i>
                               <i className='bx bxs-share bx-border hover:border-gray-400 cursor-pointer'></i>
                           </div>

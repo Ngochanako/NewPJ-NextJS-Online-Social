@@ -13,6 +13,8 @@ import axios from 'axios';
 import classNames from 'classnames';
 import styles from '@/styles/pagination.module.css'
 import Image from 'next/image';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/config/firebase';
 
 export default function page() {
   //Initialize
@@ -36,6 +38,39 @@ export default function page() {
       lock:!post.lock
     }
     dispatch(updatePost(newPost));
+    if(newPost.lock){
+      const newNotify=async()=>{
+        try {
+           const docREf=await addDoc(collection(db,'notifications'),{
+            detail:'Bài viết của bạn vừa bị khóa',
+            url:`/home?id=${newPost.id}`,
+            idUser:post.idUser,
+            status:false,
+            created:serverTimestamp(),
+            idUserSendNotify:''
+           }) 
+        } catch (error) {
+            console.log(error);                  
+        }
+    }
+    newNotify();
+    }else{
+      const newNotify=async()=>{
+        try {
+           const docREf=await addDoc(collection(db,'notifications'),{
+            detail:'Bài viết của bạn vừa được mở khóa',
+            url:`/home?id=${newPost.id}`,
+            idUser:post.idUser,
+            status:false,
+            created:serverTimestamp(),
+            idUserSendNotify:''
+           }) 
+        } catch (error) {
+            console.log(error);                  
+        }
+      }
+      newNotify();
+    }
   }
    //pagination
 useEffect(()=>{
@@ -71,7 +106,7 @@ const renderPagesNumber=()=>{
     let pages=[];
     let a:number=2;
     let b:number=0;
-    if(totalPage<4){
+    if(totalPage<=4){
        b=totalPage-1
     }else{
         if(currentPage<4){
@@ -147,9 +182,9 @@ const renderPagesNumber=()=>{
                            <td>{btn.fullDate}</td>
                            <td>{btn.userNameUser}</td>
                            
-                           <td><Button variant={btn.status?"outline-success":"outline-danger"}>{btn.lock?'Active':"Disable"}</Button></td>
+                           <td><Button variant={!btn.lock?"outline-success":"outline-danger"}>{!btn.lock?'Active':"Disable"}</Button></td>
                            <td className='cursor-pointer'>
-                               {!btn.lock?<i onClick={()=>handleLockPost(btn)} className='bx bxs-lock-alt'></i>:<i onClick={()=>handleLockPost(btn)} className='bx bxs-lock-open-alt'></i>}                          
+                               {btn.lock?<i onClick={()=>handleLockPost(btn)} className='bx bxs-lock-alt'></i>:<i onClick={()=>handleLockPost(btn)} className='bx bxs-lock-open-alt'></i>}                          
                            </td>
                          </tr>
                         ))}
@@ -167,7 +202,7 @@ const renderPagesNumber=()=>{
                     </button>
                     <div className={`${currentPage<4?'hidden':''}`}>...</div>
                     {renderPagesNumber()}
-                    <div className={`${currentPage>17||totalPage<4?'hidden':''}`}>...</div>
+                    <div className={`${currentPage>totalPage-3||totalPage<=4?'hidden':''}`}>...</div>
                     <button
                             onClick={handlePageLast}
                             className={classNames(styles.pagesNumber, {

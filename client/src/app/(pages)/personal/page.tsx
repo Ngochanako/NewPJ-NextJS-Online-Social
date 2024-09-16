@@ -12,7 +12,7 @@ import { getPosts } from '@/services/posts.service';
 import { setPost } from '@/store/reducers/PostReducer';
 import HeaderLeft from '@/layouts/HeaderLeft';
 import { useRouter } from 'next/navigation';
-
+import Image from 'next/image';
 export default function page() {
     //Initialize
     const dispatch=useDispatch();
@@ -31,11 +31,15 @@ export default function page() {
     },[])
     //get posts of UserOnline
     useEffect(()=>{
-      const newPosts:Post[]=posts.filter(post=>post.idUser==userOnline.id&&!post.lock);
-      setPostsByUserOnline(newPosts);
+      if(userOnline){
+        const newPosts:Post[]=posts.filter(post=>post.idUser==userOnline.id&&!post.lock);
+        setPostsByUserOnline(newPosts);
+      }   
     },[posts,userOnline])
     //open modal Avatar
     const openModalAvatar=()=>{
+      console.log(1);
+      
       dispatch(activeModalAvatar({type:'personal',status:true}));
     }
     //view followers of UserOnline
@@ -50,7 +54,7 @@ export default function page() {
     const openModalPost=(post:Post)=>{
       dispatch(setPost(post));
       dispatch(activeModalAllComment());
-      router.push(`/home/${post.id}`)
+      router.push(`/home?id=${post.id}`)
     }
   return (
     <>
@@ -59,7 +63,17 @@ export default function page() {
     <div className='p-[50px] ml-[230px]'>
         <header className='px-[40px] flex gap-[80px] items-center relative'>       
         {loading&&<div className="lds-ellipsis absolute top-[-30px] right-[-120px]"><div></div><div></div><div></div><div></div></div>}
-            <img onClick={openModalAvatar} className='cursor-pointer w-[150px] h-[150px] rounded-[50%]' src={userOnline?.avatar} alt="" />
+        {userOnline?.avatar && (
+            <div onClick={openModalAvatar}><img
+            
+            className="cursor-pointer w-[150px] h-[150px] rounded-[50%] z-[-1] object-cover"
+            src={userOnline.avatar}
+            alt="User Avatar"
+            width={150}
+            height={150}
+            style={{ borderRadius: '50%' }} 
+          /></div>
+            )}
             <div className='flex flex-col gap-[30px]'>
                 <div className='flex gap-[20px] items-center'>
                     <div className='text-[20px]'>{userOnline?.username}</div>
@@ -68,10 +82,10 @@ export default function page() {
                 </div>
                 <div className='flex gap-[40px]'>
                     <div className='p-[10px]'><span className='font-bold'>{postsByUserOnline.length}</span> bài viết</div>
-                    <div className='cursor-pointer hover:bg-[rgb(221,210,156)] p-[10px] rounded-[5px]' onClick={viewFollowersOfUser}><span className='font-bold'>{users.filter(user=>user.followUsersById.includes(userOnline.id)).length}</span> người theo dõi</div> 
+                    <div className='cursor-pointer hover:bg-[rgb(221,210,156)] p-[10px] rounded-[5px]' onClick={viewFollowersOfUser}><span className='font-bold'>{users.filter(user=>user.followUsersById.includes(userOnline?.id)).length}</span> người theo dõi</div> 
                     {viewFollowers&&
-                    <div className='absolute flex flex-col gap-[10px] bg-gray-200 rounded-[10px] shadow-sm p-[10px] right-[430px] top-[180px]'>
-                      {users.filter(user=>user.followUsersById.includes(userOnline.id)).map(item=>(
+                    <div className='absolute flex flex-col gap-[10px] bg-gray-200 rounded-[10px] shadow-sm p-[10px] right-[430px] top-[130px]'>
+                      {users.filter(user=>user.followUsersById.includes(userOnline?.id)).map(item=>(
                         <div className='flex gap-[5px] items-center'>
                             <img className='w-[20px] h-[20px] rounded-[50%]' src={item.avatar} alt="" />
                             <div>{item.username}</div>
@@ -80,9 +94,9 @@ export default function page() {
                     </div> }
                     <div onClick={viewUserFollowByUserOnline} className='cursor-pointer hover:bg-[rgb(221,210,156)] p-[10px] rounded-[5px]'>Đang theo dõi <span className='font-bold'>{userOnline?.followUsersById.length}</span> người dùng</div>  
                      {viewUserFollow&&
-                    <div className='absolute flex flex-col gap-[10px] bg-gray-200 rounded-[10px] shadow-sm p-[10px] right-[230px] top-[180px]'>
-                      {userOnline.followUsersById.map(item=>(
-                        <div className='flex gap-[5px] items-center'>
+                    <div className='absolute flex flex-col gap-[10px] bg-gray-200 rounded-[10px] shadow-sm p-[10px] right-[200px] top-[130px]'>
+                      {userOnline?.followUsersById.map(item=>(
+                        <div className='flex gap-[5px] items-center px-[50px]'>
                             <img className='w-[20px] h-[20px] rounded-[50%]' src={users.find(user=>user.id==item)?.avatar} alt="" />
                             <div>{users.find(user=>user.id==item)?.username}</div>
                         </div>
